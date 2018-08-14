@@ -24,12 +24,13 @@ SILABS_REPO_FW=wfx_firmware
 SILABS_GITHUB_DRV=https://github.com/SiliconLabs
 SILABS_REPO_DRV=wfx_linux_driver_code
 
-echo "Silicon Labs update script for WFx200 WiFi parts. Driver $DRV_TAG, FW $FW_TAG"
+echo "Silicon Labs update script for WFx200 WiFi parts"
+echo "  Driver $DRV_TAG"
+echo "  FW     $FW_TAG"
+echo "  PDS    $PDS"
 
 ! grep -q 'NAME="Raspbian GNU/Linux"' /etc/os-release && echo "You must run this script from a Raspberry" && exit 1
 [ -z "$SUDO_USER" ] && echo "This script must be run with sudo" && exit 1
-
-#set -x
 
 if [ ! -e "$SILABS_ROOT" ]; then
 	sudo mkdir "$SILABS_ROOT"
@@ -41,12 +42,12 @@ cd "$SILABS_ROOT"
 
 #   Scripts
 if [ ! -e "$SILABS_ROOT/$SILABS_REPO_SCRIPTS" ]; then
-	echo "Cloning $SILABS_GITHUB_SCRIPTS/$SILABS_REPO_SCRIPTS.git in $(pwd)"
+	echo "Cloning repository $SILABS_GITHUB_SCRIPTS/$SILABS_REPO_SCRIPTS.git in $(pwd)"
 	sudo git clone $SILABS_GITHUB_SCRIPTS/$SILABS_REPO_SCRIPTS.git --depth 5
 fi
 
 cd "$SILABS_ROOT/$SILABS_REPO_SCRIPTS"
-echo "Fetching $SILABS_GITHUB_SCRIPTS/$SILABS_REPO_SCRIPTS.git tag $SCRIPTS_TAG in $(pwd)"
+echo "Fetching repository $SILABS_GITHUB_SCRIPTS/$SILABS_REPO_SCRIPTS.git tag $SCRIPTS_TAG in $(pwd)"
 sudo git fetch $SILABS_GITHUB_SCRIPTS/$SILABS_REPO_SCRIPTS.git --depth 5 --tags "$SCRIPTS_TAG"
 
 if [ -e "$SILABS_ROOT/$SILABS_REPO_SCRIPTS/pi" ]; then
@@ -80,12 +81,12 @@ fi
 cd "$SILABS_ROOT"
 
 if [ ! -e "$SILABS_ROOT/$SILABS_REPO_FW" ]; then
-	echo "Cloning $SILABS_GITHUB_FW/$SILABS_REPO_FW.git in $(pwd)"
+	echo "Cloning repository $SILABS_GITHUB_FW/$SILABS_REPO_FW.git in $(pwd)"
 	sudo git clone $SILABS_GITHUB_FW/$SILABS_REPO_FW.git --depth 5
 fi
 
 cd "$SILABS_ROOT/$SILABS_REPO_FW"
-echo "Fetching $SILABS_GITHUB_FW/$SILABS_REPO_FW.git tag $FW_TAG in $(pwd)"
+echo "Fetching repository $SILABS_GITHUB_FW/$SILABS_REPO_FW.git tag $FW_TAG in $(pwd)"
 sudo git fetch $SILABS_GITHUB_FW/$SILABS_REPO_FW.git --depth 5 --tags "$FW_TAG"
 
 #   FW files
@@ -123,3 +124,14 @@ depmod -a
 set ""
 
 cd $START_DIR
+Updating modules dependencies
+
+echo "Use the following scripts to configure WiFi for your use case"
+ls $USER_ROOT/*.sh | grep -E "_auto|_modprobe"
+echo " Then enter 'sudo halt',"
+echo "   wait for the activity leds to stop blinking,"
+echo "   set the Devkit switch to SDIO or SPI according to your configuration"
+echo "   and power-cycle the Pi to get started with your Wfx200"
+
+echo " Once rebooted, use the /home/pi/wfx_all_checks.sh script to check your setup and how the startup is going"
+
