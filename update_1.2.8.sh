@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Run with:
+#  curl https://raw.githubusercontent.com/MarcDorval/wofo/master/pi/update_1.2.8.sh | sudo sh
+
 SILABS_ROOT=/usr/src/siliconlabs
 USER_ROOT=/home/pi
 
@@ -19,9 +22,6 @@ SILABS_REPO_FW=wfx_firmware
 
 SILABS_GITHUB_DRV=https://github.com/SiliconLabs
 SILABS_REPO_DRV=wfx_linux_driver_code
-
-# Run with:
-#  curl https://raw.githubusercontent.com/MarcDorval/wofo/master/pi/update_1.2.8.sh | sudo sh
 
 echo "Silicon Labs update script for WFx200 WiFi parts"
 
