@@ -24,7 +24,7 @@ SILABS_REPO_FW=wfx_firmware
 SILABS_GITHUB_DRV=https://github.com/SiliconLabs
 SILABS_REPO_DRV=wfx_linux_driver_code
 
-echo "Silicon Labs update script for WFx200 WiFi parts"
+echo "Silicon Labs update script for WFx200 WiFi parts (modified)"
 
 ! grep -q 'NAME="Raspbian GNU/Linux"' /etc/os-release && echo "You must run this script from a Raspberry" && exit 1
 [ -z "$SUDO_USER" ] && echo "This script must be run with sudo" && exit 1
