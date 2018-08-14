@@ -55,7 +55,7 @@ sudo git fetch $SILABS_GITHUB_SCRIPTS/$SILABS_REPO_SCRIPTS.git --depth 5 --tags 
 
 if [ -e "$SILABS_ROOT/$SILABS_REPO_SCRIPTS/pi" ]; then
 	echo "Copying Silicon Labs scripts in $USER_ROOT"
-	cp -v $SILABS_ROOT/$SILABS_REPO_SCRIPTS/pi/* $USER_ROOT
+	cp --force $SILABS_ROOT/$SILABS_REPO_SCRIPTS/pi/* $USER_ROOT
 fi
 sudo chown pi: $USER_ROOT/*.sh
 chmod a+x $USER_ROOT/*.sh
@@ -66,7 +66,7 @@ if [ -e "$SILABS_ROOT/$SILABS_REPO_SCRIPTS/wfx_driver" ]; then
 		mkdir "$USER_ROOT/wfx_driver"
 	fi
 	echo "Copying Silicon Labs WFx200 Drivers in $USER_ROOT/wfx_driver"
-	cp -v -r $SILABS_ROOT/$SILABS_REPO_SCRIPTS/wfx_driver/*$DRV_RELEASE*wfx*.ko $USER_ROOT/wfx_driver
+	cp --force $SILABS_ROOT/$SILABS_REPO_SCRIPTS/wfx_driver/*$DRV_RELEASE*wfx*.ko $USER_ROOT/wfx_driver
 	WFX_CORE_FILE=$(ls $USER_ROOT/wfx_driver/*wfx_core.ko      | grep $DRV_TAG)
 	echo "WFX_CORE_FILE=$WFX_CORE_FILE"
 	WFX_SDIO_FILE=$(ls $USER_ROOT/wfx_driver/*wfx_wlan_sdio.ko | grep $DRV_TAG)
@@ -77,7 +77,6 @@ if [ -e "$SILABS_ROOT/$SILABS_REPO_SCRIPTS/wfx_driver" ]; then
 	ln -sf $WFX_CORE_FILE /lib/modules/$KERNEL/kernel/drivers/net/wireless/siliconlabs/wfx/wfx_core.ko
 	ln -sf $WFX_SDIO_FILE /lib/modules/$KERNEL/kernel/drivers/net/wireless/siliconlabs/wfx/wfx_wlan_sdio.ko
 	ln -sf $WFX_SPI_FILE  /lib/modules/"$KERNEL"/kernel/drivers/net/wireless/siliconlabs/wfx/wfx_wlan_spi.ko
-	set ""
 fi
 ####################################################################################################
 # Retrieving and copying FW & PDS files
@@ -102,7 +101,7 @@ if [ -e "$SILABS_ROOT/$SILABS_REPO_FW/wfx" ]; then
 	fi
 	FW_FILE=$USER_ROOT/wfx_firmware/wfx/wfm_wf200_A0_FW"$FW_RELEASE".sec
 	echo "Copying Silicon Labs WFx200 Firmware in $USER_ROOT/wfx_firmware/wfx"
-	cp -v -r $SILABS_ROOT/$SILABS_REPO_FW/wfx/wfm_wf200_A0.sec $FW_FILE
+	cp --force $SILABS_ROOT/$SILABS_REPO_FW/wfx/wfm_wf200_A0.sec $FW_FILE
 	echo "Creating symbolic link to Silicon Labs WFx200 Firmware"
 	ln -sf $FW_FILE /lib/firmware/wfm_wf200.sec
 fi
@@ -116,7 +115,7 @@ if [ -e "$SILABS_ROOT/$SILABS_REPO_FW/pds" ]; then
 	fi
 	PDS_FILE=$USER_ROOT/wfx_firmware/pds/"$PDS"_FW"$FW_RELEASE".json
 	echo "Copying Silicon Labs WFx200 PDS file in $USER_ROOT/wfx_firmware/pds"
-	cp -v -r $SILABS_ROOT/$SILABS_REPO_FW/pds/"$PDS".json $PDS_FILE
+	cp --force $SILABS_ROOT/$SILABS_REPO_FW/pds/"$PDS".json $PDS_FILE
 	echo "Creating symbolic link to Silicon Labs WFx200 PDS"
 	ln -sf $PDS_FILE /lib/firmware/pds_wf200.json
 fi
