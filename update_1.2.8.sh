@@ -15,6 +15,9 @@ FW_TAG=FW"$FW_RELEASE"
 PDS=pds_BRD802xA
 KERNEL=$(uname -r)
 
+CONFIG_FILE=/boot/config.txt
+BLACKLIST_FILE=/etc/modprobe.d/raspi-blacklist.conf
+
 SILABS_GITHUB_SCRIPTS=https://github.com/MarcDorval
 SILABS_REPO_SCRIPTS=wofo
 
@@ -118,13 +121,32 @@ if [ -e "$SILABS_ROOT/$SILABS_REPO_FW/pds" ]; then
 	ln -sf $PDS_FILE /lib/firmware/pds_wf200.json
 fi
 
+# Updating modules dependencies
 echo "Updating modules dependencies"
 depmod -a
 
 set ""
 
 cd $START_DIR
-Updating modules dependencies
+
+# Checking current overlays and blacklist. Configuring for SDIO auto by default
+BLACKLISTED=$(cat "$BLACKLIST_FILE" | grep ^blacklist | grep -E "brcmfmac")
+if [ -z "$BLACKLISTED" ]; then
+	echo "Broadcom WiFi not blacklisted. Blacklisting it by default (for Pi3)"
+	echo "blacklist brcmfmac" >> "$BLACKLIST_FILE"
+fi
+BLACKLISTED=$(cat "$BLACKLIST_FILE" | grep ^blacklist | grep -E "sdio|spi")
+if [ -z "$BLACKLISTED" ]; then
+	echo "No SDIO or SPI Driver blacklisted. Blacklisting SPI and commenting SDIO by default"
+	echo "#blacklist wfx_wlan_sdio" >> "$BLACKLIST_FILE"
+	echo "blacklist wfx_wlan_spi"   >> "$BLACKLIST_FILE"
+fi
+OVERLAYS=$(cat "$CONFIG_FILE" | grep ^dtoverlay | grep -E "sdio|spi")
+if [ -z "$OVERLAYS" ]; then
+	echo "No SDIO or SPI Overlay enabled. Enabling SDIO and commenting SPI by default"
+	echo "dtoverlay=sdio"       >> "$CONFIG_FILE"
+	echo "#dtoverlay=wfx-spi"   >> "$CONFIG_FILE"
+fi
 
 echo "Use the following scripts to configure WiFi for your use case"
 ls $USER_ROOT/*.sh | grep -E "_auto|_modprobe"
@@ -134,4 +156,3 @@ echo "   set the Devkit switch to SDIO or SPI according to your configuration"
 echo "   and power-cycle the Pi to get started with your Wfx200"
 
 echo " Once rebooted, use the /home/pi/wfx_all_checks.sh script to check your setup and how the startup is going"
-
