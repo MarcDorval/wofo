@@ -64,7 +64,9 @@ if [ -e "$SILABS_ROOT/$SILABS_REPO_SCRIPTS/wfx_driver" ]; then
 	echo "Copying Silicon Labs WFx200 Drivers in $USER_ROOT/wfx_driver"
 	cp -v -r $SILABS_ROOT/$SILABS_REPO_SCRIPTS/wfx_driver/*"$DRV_RELEASE"*.ko $USER_ROOT/wfx_driver
 	set -x
-	WFX_CORE_FILE=$(ls $USER_ROOT/wfx_driver/*"$DRV_TAG"_wfx_core.ko     )
+	echo ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"
+	echo "$USER_ROOT/wfx_driver/*${DRV_TAG}_wfx_core.ko"
+	WFX_CORE_FILE=$(ls $USER_ROOT/wfx_driver/*{$DRV_TAG}_wfx_core.ko     )
 	echo "..................."
 	echo "..................."
 	echo "WFX_CORE_FILE=$WFX_CORE_FILE"
