@@ -3,6 +3,7 @@
 # Run with:
 #  curl https://raw.githubusercontent.com/MarcDorval/wofo/master/update_1.2.8.sh | sudo sh
 
+START_DIR=$(pwd)
 SILABS_ROOT=/usr/src/siliconlabs
 USER_ROOT=/home/pi
 
@@ -50,8 +51,9 @@ sudo git fetch $SILABS_GITHUB_SCRIPTS/$SILABS_REPO_SCRIPTS.git --depth 5 --tags 
 
 if [ -e "$SILABS_ROOT/$SILABS_REPO_SCRIPTS/pi" ]; then
 	cp -v $SILABS_ROOT/$SILABS_REPO_SCRIPTS/pi/* $USER_ROOT
-	chmod a+x $USER_ROOT/*.sh
 fi
+sudo chown pi: $USER_ROOT/*.sh
+chmod a+x $USER_ROOT/*.sh
 
 #   Driver executables
 if [ -e "$SILABS_ROOT/$SILABS_REPO_SCRIPTS/wfx_driver" ]; then
@@ -108,5 +110,4 @@ depmod -a
 
 set ""
 
-cd $USER_ROOT
-.  $USER_ROOT/wfx_all_checks.sh 
+cd $START_DIR
