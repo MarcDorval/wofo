@@ -61,9 +61,9 @@ if [ -e "$SILABS_ROOT/$SILABS_REPO_SCRIPTS/wfx_driver" ]; then
 		mkdir "$USER_ROOT/wfx_driver"
 	fi
 	cp -v -r $SILABS_ROOT/$SILABS_REPO_SCRIPTS/wfx_driver/*$DRV_RELEASE*.ko $USER_ROOT/wfx_driver
-	WFX_CORE_FILE=$(ls $USER_ROOT/wfx_driver/*$DRV_RELEASE*.ko | grep core)
-	WFX_SDIO_FILE=$(ls $USER_ROOT/wfx_driver/*$DRV_RELEASE*.ko | grep sdio)
-	WFX_SPI_FILE=$( ls $USER_ROOT/wfx_driver/*$DRV_RELEASE*.ko | grep spi )
+	WFX_CORE_FILE=$(ls $USER_ROOT/wfx_driver/*$DRV_RELEASE_wfx_core.ko     )
+	WFX_SDIO_FILE=$(ls $USER_ROOT/wfx_driver/*$DRV_RELEASE_wfx_wlan_sdio.ko)
+	WFX_SPI_FILE=$( ls $USER_ROOT/wfx_driver/*$DRV_RELEASE_wfx_wlan_spi.ko )
 	ln -sf $WFX_CORE_FILE /lib/modules/"$KERNEL"/kernel/drivers/net/wireless/siliconlabs/wfx/wfx_core.ko
 	ln -sf $WFX_SDIO_FILE /lib/modules/"$KERNEL"/kernel/drivers/net/wireless/siliconlabs/wfx/wfx_wlan_sdio.ko
 	ln -sf $WFX_SPI_FILE  /lib/modules/"$KERNEL"/kernel/drivers/net/wireless/siliconlabs/wfx/wfx_wlan_spi.ko
