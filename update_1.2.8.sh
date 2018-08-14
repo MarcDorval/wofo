@@ -24,7 +24,7 @@ SILABS_REPO_FW=wfx_firmware
 SILABS_GITHUB_DRV=https://github.com/SiliconLabs
 SILABS_REPO_DRV=wfx_linux_driver_code
 
-echo "Silicon Labs update script for WFx200 WiFi parts (modified)"
+echo "Silicon Labs update script for WFx200 WiFi parts. Driver $DRV_TAG, FW $FW_TAG"
 
 ! grep -q 'NAME="Raspbian GNU/Linux"' /etc/os-release && echo "You must run this script from a Raspberry" && exit 1
 [ -z "$SUDO_USER" ] && echo "This script must be run with sudo" && exit 1
@@ -63,7 +63,6 @@ if [ -e "$SILABS_ROOT/$SILABS_REPO_SCRIPTS/wfx_driver" ]; then
 	fi
 	echo "Copying Silicon Labs WFx200 Drivers in $USER_ROOT/wfx_driver"
 	cp -v -r $SILABS_ROOT/$SILABS_REPO_SCRIPTS/wfx_driver/*$DRV_RELEASE*wfx*.ko $USER_ROOT/wfx_driver
-	set -x
 	WFX_CORE_FILE=$(ls $USER_ROOT/wfx_driver/*wfx_core.ko      | grep $DRV_TAG)
 	echo "WFX_CORE_FILE=$WFX_CORE_FILE"
 	WFX_SDIO_FILE=$(ls $USER_ROOT/wfx_driver/*wfx_wlan_sdio.ko | grep $DRV_TAG)
