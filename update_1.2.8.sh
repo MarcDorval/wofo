@@ -64,9 +64,13 @@ if [ -e "$SILABS_ROOT/$SILABS_REPO_SCRIPTS/wfx_driver" ]; then
 	echo "Copying Silicon Labs WFx200 Drivers in $USER_ROOT/wfx_driver"
 	cp -v -r $SILABS_ROOT/$SILABS_REPO_SCRIPTS/wfx_driver/*$DRV_RELEASE*.ko $USER_ROOT/wfx_driver
 	WFX_CORE_FILE=$(ls $USER_ROOT/wfx_driver/*$DRV_TAG_wfx_core.ko     )
-	echo "+++++"
+	echo "..................."
+	echo "..................."
+	echo "..................."
+	echo "..................."
+	echo "..................."
 	echo "WFX_CORE_FILE=$WFX_CORE_FILE"
-	echo "+++++"
+	echo "..................."
 	WFX_SDIO_FILE=$(ls $USER_ROOT/wfx_driver/*$DRV_TAG_wfx_wlan_sdio.ko)
 	WFX_SPI_FILE=$( ls $USER_ROOT/wfx_driver/*$DRV_TAG_wfx_wlan_spi.ko )
 	echo "Creating symbolic links to Silicon Labs WFx200 Drivers"
