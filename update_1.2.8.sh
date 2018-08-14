@@ -62,12 +62,14 @@ if [ -e "$SILABS_ROOT/$SILABS_REPO_SCRIPTS/wfx_driver" ]; then
 		mkdir "$USER_ROOT/wfx_driver"
 	fi
 	echo "Copying Silicon Labs WFx200 Drivers in $USER_ROOT/wfx_driver"
-	cp -v -r $SILABS_ROOT/$SILABS_REPO_SCRIPTS/wfx_driver/*"$DRV_RELEASE"*.ko $USER_ROOT/wfx_driver
+	cp -v -r $SILABS_ROOT/$SILABS_REPO_SCRIPTS/wfx_driver/*$DRV_RELEASE*wfx*.ko $USER_ROOT/wfx_driver
 	set -x
-	WFX_CORE_FILE=$(ls $USER_ROOT/wfx_driver/*$DRV_TAG*wfx_core.ko     )
+	WFX_CORE_FILE=$(ls $USER_ROOT/wfx_driver/*wfx_core.ko      | grep $DRV_TAG)
 	echo "WFX_CORE_FILE=$WFX_CORE_FILE"
-	WFX_SDIO_FILE=$(ls $USER_ROOT/wfx_driver/*$DRV_TAG*wfx_wlan_sdio.ko)
-	WFX_SPI_FILE=$( ls $USER_ROOT/wfx_driver/*$DRV_TAG*wfx_wlan_spi.ko )
+	WFX_SDIO_FILE=$(ls $USER_ROOT/wfx_driver/*wfx_wlan_sdio.ko | grep $DRV_TAG)
+	echo "WFX_CORE_FILE=$WFX_CORE_FILE"
+	WFX_SPI_FILE=$( ls $USER_ROOT/wfx_driver/*wfx_wlan_spi.ko  | grep $DRV_TAG)
+	echo "WFX_CORE_FILE=$WFX_CORE_FILE"
 	echo "Creating symbolic links to Silicon Labs WFx200 Drivers"
 	ln -sf $WFX_CORE_FILE /lib/modules/$KERNEL/kernel/drivers/net/wireless/siliconlabs/wfx/wfx_core.ko
 	ln -sf $WFX_SDIO_FILE /lib/modules/$KERNEL/kernel/drivers/net/wireless/siliconlabs/wfx/wfx_wlan_sdio.ko
