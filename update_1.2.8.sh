@@ -67,9 +67,11 @@ if [ -e "$SILABS_ROOT/$SILABS_REPO_SCRIPTS/wfx_driver" ]; then
 	WFX_SDIO_FILE=$(ls $USER_ROOT/wfx_driver/*$DRV_RELEASE_wfx_wlan_sdio.ko)
 	WFX_SPI_FILE=$( ls $USER_ROOT/wfx_driver/*$DRV_RELEASE_wfx_wlan_spi.ko )
 	echo "Creating symbolic links to Silicon Labs WFx200 Drivers"
+	set -x
 	ln -sf $WFX_CORE_FILE /lib/modules/"$KERNEL"/kernel/drivers/net/wireless/siliconlabs/wfx/wfx_core.ko
 	ln -sf $WFX_SDIO_FILE /lib/modules/"$KERNEL"/kernel/drivers/net/wireless/siliconlabs/wfx/wfx_wlan_sdio.ko
 	ln -sf $WFX_SPI_FILE  /lib/modules/"$KERNEL"/kernel/drivers/net/wireless/siliconlabs/wfx/wfx_wlan_spi.ko
+	set ""
 fi
 ####################################################################################################
 # Retrieving and copying FW & PDS files
