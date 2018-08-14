@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Run with:
-#  curl https://raw.githubusercontent.com/MarcDorval/wofo/master/pi/update_1.2.8.sh | sudo sh
+#  curl https://raw.githubusercontent.com/MarcDorval/wofo/master/update_1.2.8.sh | sudo sh
 
 SILABS_ROOT=/usr/src/siliconlabs
 USER_ROOT=/home/pi
@@ -50,6 +50,7 @@ sudo git fetch $SILABS_GITHUB_SCRIPTS/$SILABS_REPO_SCRIPTS.git --depth 5 --tags 
 
 if [ -e "$SILABS_ROOT/$SILABS_REPO_SCRIPTS/pi" ]; then
 	cp -v $SILABS_ROOT/$SILABS_REPO_SCRIPTS/pi/* $USER_ROOT
+	chmod a+x $USER_ROOT/*.sh
 fi
 
 #   Driver executables
