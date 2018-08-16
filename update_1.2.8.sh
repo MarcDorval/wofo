@@ -31,6 +31,7 @@ echo "Silicon Labs update script for WFx200 WiFi parts"
 echo "  Driver $DRV_TAG"
 echo "  FW     $FW_TAG"
 echo "  PDS    $PDS"
+echo "  KERNEL $KERNEL"
 
 ! grep -q 'NAME="Raspbian GNU/Linux"' /etc/os-release && echo "You must run this script from a Raspberry" && exit 1
 [ -z "$SUDO_USER" ] && echo "This script must be run with sudo" && exit 1
