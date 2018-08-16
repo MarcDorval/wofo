@@ -62,7 +62,7 @@ if [ -z "$SDIO_overlay" ]; then
 	WFX_SDIO_Overlay_enabled=0
 else
 	WFX_SDIO_Overlay_enabled=1
-	echo "User:     WFX SDIO overlay_enabled         (in /boot/config.txt)"
+	echo "User:     WFX SDIO overlay enabled         (in /boot/config.txt)"
 	# SDIO detection at boot will only occur if sdio overlay is enabled in boot/config.txt
 	if [ "$WFX_SDIO_Overlay_enabled" = 1 ]; then
 		# Check if SDIO has been detected at boot, and proceed only if yes
