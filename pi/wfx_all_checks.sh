@@ -15,6 +15,7 @@ wfx_spi_base=/lib/modules/$kernel/kernel/drivers/net/wireless/siliconlabs/wfx/wf
 wfx_fw_base=/lib/firmware/wfm_wf200.sec
 wfx_pds_base=/lib/firmware/pds_wf200.json
 wfx_core_conf=/etc/modprobe.d/wfx_core.conf
+wfx_spi_dtbo=/boot/overlays/wfx-spi.dtbo
 
 # if using symbolic links, use the links, otherwise use the files
 wfx_core_link=$(readlink $wfx_core_base)
@@ -150,6 +151,11 @@ else
 				wfx_spi_version=$(modinfo wfx_wlan_spi  | grep -E "^version")
 				echo "Setup:    WFX SPI  module $wfx_spi_version ($wfx_spi_module)"
 			fi
+		fi
+		if [ ! -e "$wfx_spi_dtbo" ]; then
+			missing_files=$missing_files + 1
+			echo "Setup:    Error: Missing WFX SPI  device tree overlay ($wfx_spi_dtbo)"
+			echo "                 You need to check you WFX driver installation! Make sure you have the $wfx_spi_dtbo file!"
 		fi
 	fi
 fi
