@@ -62,6 +62,7 @@ if [ -z "$SDIO_overlay" ]; then
 	WFX_SDIO_Overlay_enabled=0
 else
 	WFX_SDIO_Overlay_enabled=1
+	WFX_DRIVER=wfx_wlan_sdio
 	echo "User:     WFX SDIO overlay enabled         (in /boot/config.txt)"
 	# SDIO detection at boot will only occur if sdio overlay is enabled in boot/config.txt
 	if [ "$WFX_SDIO_Overlay_enabled" = 1 ]; then
@@ -71,9 +72,14 @@ else
 			echo "Startup:  SDIO Part detected at boot       ($mmc)"
 			# Check if SDIO driver is blacklisted
 			SDIO_blacklisted=$(cat /etc/modprobe.d/raspi-blacklist.conf | grep ^blacklist | grep wfx_wlan_sdio)
+			SDIO_IN_MODULES=$(cat /etc/modules | grep ^wfx_wlan_sdio)
 			if [ -z "$SDIO_blacklisted" ]; then
 				WFX_SDIO_Driver_blacklisted=0
-				echo "User:     WFX SDIO Driver not blacklisted  (it should load automatically after detection)"
+				if [ ! -z "$SDIO_IN_MODULES" ]; then
+					echo "User:     WFX SDIO Driver not blacklisted  (it should load automatically after detection)"
+				else
+					echo "User:     WFX SDIO Driver not blacklisted but not in /etc/modules (it must be loaded using 'sudo modprobe -v wfx_wlan_sdio')"
+				fi
 			else
 				WFX_SDIO_Driver_blacklisted=1
 				echo "User:     WFX SDIO Driver blacklisted      (it must be loaded using 'sudo modprobe -v wfx_wlan_sdio')"
@@ -112,6 +118,7 @@ if [ -z "$SPI_overlay" ]; then
 	WFX_SPI_Overlay_enabled=0
 else
 	WFX_SPI_Overlay_enabled=1
+	WFX_DRIVER=wfx_wlan_spi
 	echo "User:     WFX SPI overlay_enabled          (in /boot/config.txt)"
 	# SDIO detection at boot will only occur if sdio overlay is enabled in boot/config.txt
 	if [ "$WFX_SPI_Overlay_enabled" = 1 ]; then
@@ -200,7 +207,7 @@ else
 			exit 1
 		fi
 	else
-		echo "Startup:  Waiting for user to use 'sudo modprobe -v wfx_wlan_sdio' to load the driver"
+		echo "Startup:  Waiting for user to use 'sudo modprobe -v $WFX_DRIVER' to load the driver"
 		exit 1
 	fi
 fi
