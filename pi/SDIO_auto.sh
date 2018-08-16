@@ -5,6 +5,7 @@ echo "Start   configuration:"
 echo ""
 
 . ./Enable_SDIO_overlay.sh
+. ./Enable_SDIO_module.sh
 . ./Unblacklist_SDIO_driver.sh
 . ./Disable_SPI_overlay.sh
 . ./Blacklist_SPI_driver.sh
