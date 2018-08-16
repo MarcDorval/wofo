@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Run with:
-#  curl https://raw.githubusercontent.com/MarcDorval/wofo/master/update_1.2.8.sh | sudo sh
+#  curl https://raw.githubusercontent.com/MarcDorval/wofo/master/update_1.2.8.sh | sudo bash
 
 START_DIR=$(pwd)
 SILABS_ROOT=/usr/src/siliconlabs
