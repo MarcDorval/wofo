@@ -14,8 +14,10 @@ DRV_TAG=DRV-"$DRV_RELEASE"
 FW_TAG=FW"$FW_RELEASE"
 PDS=pds_BRD802xA
 KERNEL=$(uname -r)
+KERNEL_IMAGE=kernel7_"$KERNEL".img
+DEVICE_TREE_BLOB=bcm2710-rpi-3-b_4.4.50-v7+.dtb
 
-CONFIG_FILE=/boot/config.txt
+CONFIG_FILE=config.txt
 BLACKLIST_FILE=/etc/modprobe.d/raspi-blacklist.conf
 
 SILABS_GITHUB_SCRIPTS=https://github.com/MarcDorval
@@ -129,7 +131,37 @@ set ""
 
 cd $START_DIR
 
-# Checking current overlays and blacklist. Configuring for SDIO auto by default
+# Checking kernel image, dtb and config files presence. Adding them is not present
+if [ ! -e "/boot/$KERNEL_IMAGE" ]; then
+	echo "No /boot/$KERNEL_IMAGE file. Copying it"
+	cp --force "$SILABS_ROOT/$SILABS_REPO_SCRIPTS/boot/$KERNEL_IMAGE" "/boot/$KERNEL_IMAGE"
+fi
+if [ ! -e "/boot/$DTB_FILE" ]; then
+	echo "No /boot/$DTB_FILE file. Copying it"
+	cp --force "$SILABS_ROOT/$SILABS_REPO_SCRIPTS/boot/$DTB_FILE" "/boot/$DTB_FILE"
+fi
+# Checking current kernel selection
+KERNEL_SELECTED=$(cat /boot/$CONFIG_FILE | grep ^kernel | cut -d "=" -f 2)
+if [ "$KERNEL_SELECTED" != "$KERNEL_IMAGE" ]; then
+	if [ -z "$KERNEL_SELECTED" ]; then
+		echo "No kernel image selected in /boot/$CONFIG_FILE. Selecting $KERNEL_IMAGE by default"
+		echo "kernel=$KERNEL_IMAGE"   >> "/boot/$CONFIG_FILE"
+	else
+		sed -i~ 's/$KERNEL_SELECTED/$KERNEL_IMAGE/m' "/boot/$CONFIG_FILE"
+	fi
+fi
+# Checking current device tree selection
+DEVICE_TREE_SELECTED=$(cat /boot/$CONFIG_FILE | grep ^device_tree | cut -d "=" -f 2)
+if [ "$DEVICE_TREE_SELECTED" != "$DEVICE_TREE_BLOB" ]; then
+	if [ -z "$DEVICE_TREE_SELECTED" ]; then
+		echo "No device tree selected in /boot/$CONFIG_FILE. Selecting $DEVICE_TREE_BLOB"
+		echo "DEVICE_TREE=$DEVICE_TREE_BLOB"   >> "/boot/$CONFIG_FILE"
+	else
+		echo "Incorrect device tree selected in /boot/$CONFIG_FILE. Selecting $DEVICE_TREE_BLOB"
+		sed -i~ 's/$DEVICE_TREE_SELECTED/$DEVICE_TREE_BLOB/m' "/boot/$CONFIG_FILE"
+	fi
+fi
+# Checking current overlays and blacklist (Configuring for SDIO auto by default)
 BLACKLISTED=$(cat "$BLACKLIST_FILE" | grep ^blacklist | grep -E "brcmfmac")
 if [ -z "$BLACKLISTED" ]; then
 	echo "Broadcom WiFi not blacklisted. Blacklisting it by default (for Pi3)"
@@ -141,13 +173,13 @@ if [ -z "$BLACKLISTED" ]; then
 	echo "#blacklist wfx_wlan_sdio" >> "$BLACKLIST_FILE"
 	echo "blacklist wfx_wlan_spi"   >> "$BLACKLIST_FILE"
 fi
-OVERLAYS=$(cat "$CONFIG_FILE" | grep ^dtoverlay | grep -E "sdio|spi")
+OVERLAYS=$(cat "/boot/$CONFIG_FILE" | grep ^dtoverlay | grep -E "sdio|spi")
 if [ -z "$OVERLAYS" ]; then
 	echo "No SDIO or SPI Overlay enabled. Enabling SDIO and commenting SPI by default"
-	echo "dtoverlay=sdio"       >> "$CONFIG_FILE"
-	echo "#dtoverlay=wfx-spi"   >> "$CONFIG_FILE"
+	echo "dtoverlay=sdio"       >> "/boot/$CONFIG_FILE"
+	echo "#dtoverlay=wfx-spi"   >> "/boot/$CONFIG_FILE"
 fi
-
+# Displaying user information
 echo "Use the following scripts to configure WiFi for your use case"
 ls $USER_ROOT/*.sh | grep -E "_auto|_modprobe"
 echo " Then enter 'sudo halt',"
