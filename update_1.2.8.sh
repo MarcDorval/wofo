@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Run with:
 #  curl https://raw.githubusercontent.com/MarcDorval/wofo/master/update_1.2.8.sh | sudo sh
@@ -12,7 +12,8 @@ DRV_RELEASE=1.2.8
 FW_RELEASE=1.2.8
 DRV_TAG=DRV-"$DRV_RELEASE"
 FW_TAG=FW"$FW_RELEASE"
-PDS=pds_BRD802xA
+PDS="pds_BRD802xA"
+KERNEL_ARRAY=( 4.4.50-v7+ )
 KERNEL=$(uname -r)
 KERNEL_IMAGE=kernel7_"$KERNEL".img
 DEVICE_TREE_BLOB=bcm2710-rpi-3-b_4.4.50-v7+.dtb
@@ -35,9 +36,30 @@ echo "  FW     $FW_TAG"
 echo "  PDS    $PDS"
 echo "  KERNEL $KERNEL"
 
+####################################################################################################
+# Execution context checks:
+#  The platform is a Raspberry Pi
 ! grep -q 'NAME="Raspbian GNU/Linux"' /etc/os-release && echo "You must run this script from a Raspberry" && exit 1
-[ -z "$SUDO_USER" ] && echo "This script must be run with sudo" && exit 1
+#  Executed as sudo
+[ -z "$SUDO_USER" ] && echo "\nThis script must be run with sudo" && exit 1
+#  The kernel release is supported
+KERNEL_SUPPORTED=0
+for k in "${KERNEL_ARRAY[@]}"; do
+	echo "$k "
+    if [ "$KERNEL" == "$k" ]; then
+		KERNEL_SUPPORTED=1
+		echo "KERNEL_SUPPORTED $KERNEL_SUPPORTED "
+		break
+	fi
+done
+if [ "$KERNEL_SUPPORTED" == 0 ]; then
+	echo "kernel '$KERNEL' is not supported, sorry. Only supporting ${KERNEL_ARRAY[@]}"
+	exit 1
+fi
 
+
+####################################################################################################
+# Creating work folder
 if [ ! -e "$SILABS_ROOT" ]; then
 	sudo mkdir "$SILABS_ROOT"
 fi
