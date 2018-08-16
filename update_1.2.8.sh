@@ -158,9 +158,9 @@ if [ ! -e "/boot/$KERNEL_IMAGE" ]; then
 	echo "No /boot/$KERNEL_IMAGE file. Copying it"
 	cp --force "$SILABS_ROOT/$SILABS_REPO_SCRIPTS/boot/$KERNEL_IMAGE" "/boot/$KERNEL_IMAGE"
 fi
-if [ ! -e "/boot/$DTB_FILE" ]; then
-	echo "No /boot/$DTB_FILE file. Copying it"
-	cp --force "$SILABS_ROOT/$SILABS_REPO_SCRIPTS/boot/$DTB_FILE" "/boot/$DTB_FILE"
+if [ ! -e "/boot/$DEVICE_TREE_BLOB" ]; then
+	echo "No /boot/$DEVICE_TREE_BLOB file. Copying it"
+	cp --force "$SILABS_ROOT/$SILABS_REPO_SCRIPTS/boot/$DEVICE_TREE_BLOB" "/boot/$DEVICE_TREE_BLOB"
 fi
 # Checking current kernel selection
 KERNEL_SELECTED=$(cat /boot/$CONFIG_FILE | grep ^kernel | cut -d "=" -f 2)
