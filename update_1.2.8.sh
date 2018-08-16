@@ -1,219 +1,219 @@
 #!/bin/bash
 
-echo "Current configuration"
-. ./wfx_config.sh
-echo ""
+# Run with:
+#  curl https://raw.githubusercontent.com/MarcDorval/wofo/master/update_1.2.8.sh | sudo sh
 
-kernel=$(uname -r)
+START_DIR=$(pwd)
+SILABS_ROOT=/usr/src/siliconlabs
+USER_ROOT=/home/pi
 
-echo "System:   $(cat /sys/firmware/devicetree/base/model)"
-echo "System:   Linux kernel $kernel"
+SCRIPTS_TAG=1.2.8
+DRV_RELEASE=1.2.8
+FW_RELEASE=1.2.8
+DRV_TAG=DRV-"$DRV_RELEASE"
+FW_TAG=FW"$FW_RELEASE"
+PDS=pds_BRD802xA
+KERNEL_ARRAY=(4.4.50-v7+)
+KERNEL=$(uname -r)
+KERNEL_IMAGE=kernel7_"$KERNEL".img
+DEVICE_TREE_BLOB=bcm2710-rpi-3-b_4.4.50-v7+.dtb
+SPI_DTBO=wfx-spi.dtbo
 
-wfx_core_base=/lib/modules/$kernel/kernel/drivers/net/wireless/siliconlabs/wfx/wfx_core.ko
-wfx_sdio_base=/lib/modules/$kernel/kernel/drivers/net/wireless/siliconlabs/wfx/wfx_wlan_sdio.ko
-wfx_spi_base=/lib/modules/$kernel/kernel/drivers/net/wireless/siliconlabs/wfx/wfx_wlan_spi.ko
-wfx_fw_base=/lib/firmware/wfm_wf200.sec
-wfx_pds_base=/lib/firmware/pds_wf200.json
-wfx_core_conf=/etc/modprobe.d/wfx_core.conf
-wfx_spi_dtbo=/boot/overlays/wfx-spi.dtbo
+CONFIG_FILE=config.txt
+BLACKLIST_FILE=/etc/modprobe.d/raspi-blacklist.conf
 
-# if using symbolic links, use the links, otherwise use the files
-wfx_core_link=$(readlink $wfx_core_base)
-if [ -n "$wfx_core_link" ]; then
-	wfx_core_module=$(ls $wfx_core_base)
-else
-	wfx_core_module=$wfx_core_base
-fi
+SILABS_GITHUB_SCRIPTS=https://github.com/MarcDorval
+SILABS_REPO_SCRIPTS=wofo
 
-wfx_sdio_link=$(readlink $wfx_sdio_base)
-if [ -n "$wfx_sdio_link" ]; then
-	wfx_sdio_module=$(ls $wfx_sdio_base)
-else
-	wfx_sdio_module=$wfx_sdio_base
-fi
+SILABS_GITHUB_FW=https://github.com/SiliconLabs
+SILABS_REPO_FW=wfx_firmware
 
-wfx_spi_link=$(readlink $wfx_spi_base)
-if [ -n "$wfx_spi_link" ]; then
-	wfx_spi_module=$(ls $wfx_spi_base)
-else
-	wfx_spi_module=$wfx_spi_base
-fi
+SILABS_GITHUB_DRV=https://github.com/SiliconLabs
+SILABS_REPO_DRV=wfx_linux_driver_code
 
-wfx_fw_link=$(readlink $wfx_fw_base)
-if [ -n "$wfx_fw_link" ]; then
-	wfx_fw_file=$(ls $wfx_fw_base)
-else
-	wfx_fw_file=$wfx_fw_base
-fi
+echo "Silicon Labs update script for WFx200 WiFi parts"
+echo "  Driver $DRV_TAG"
+echo "  FW     $FW_TAG"
+echo "  PDS    $PDS"
+echo "  KERNEL $KERNEL"
 
-wfx_pds_link=$(readlink $wfx_pds_base)
-if [ -n "$wfx_pds_link" ]; then
-	wfx_pds_file=$(ls $wfx_pds_base)
-else
-	wfx_pds_file=$wfx_pds_base
-fi
-
-wfx_power_mode_option=$(cat $wfx_core_conf | grep ^options | grep wfx_power_mode)
-
-missing_files=0
-
-# SDIO test: first of all, check if SDIO overlay is enabled in .boot/config.txt
-SDIO_overlay=$(cat /boot/config.txt | grep ^dtoverlay= | grep sdio)
-if [ -z "$SDIO_overlay" ]; then
-	WFX_SDIO_Overlay_enabled=0
-else
-	WFX_SDIO_Overlay_enabled=1
-	WFX_DRIVER=wfx_wlan_sdio
-	echo "User:     WFX SDIO overlay enabled         (in /boot/config.txt)"
-	# SDIO detection at boot will only occur if sdio overlay is enabled in boot/config.txt
-	if [ "$WFX_SDIO_Overlay_enabled" = 1 ]; then
-		# Check if SDIO has been detected at boot, and proceed only if yes
-		mmc=$(dmesg | grep "new high speed SDIO card")
-		if [ -n "$mmc" ]; then
-			echo "Startup:  SDIO Part detected at boot       ($mmc)"
-			# Check if SDIO driver is blacklisted
-			SDIO_blacklisted=$(cat /etc/modprobe.d/raspi-blacklist.conf | grep ^blacklist | grep wfx_wlan_sdio)
-			SDIO_IN_MODULES=$(cat /etc/modules | grep ^wfx_wlan_sdio)
-			if [ -z "$SDIO_blacklisted" ]; then
-				WFX_SDIO_Driver_blacklisted=0
-				if [ ! -z "$SDIO_IN_MODULES" ]; then
-					echo "User:     WFX SDIO Driver not blacklisted  (it should load automatically after detection)"
-				else
-					echo "User:     WFX SDIO Driver not blacklisted but not in /etc/modules (it must be loaded using 'sudo modprobe -v wfx_wlan_sdio')"
-				fi
-			else
-				WFX_SDIO_Driver_blacklisted=1
-				echo "User:     WFX SDIO Driver blacklisted      (it must be loaded using 'sudo modprobe -v wfx_wlan_sdio')"
-			fi
-			# Check WFx SDIO driver modules existence
-			if [ -z "$wfx_core_module" ]; then
-				missing_files=$missing_files + 1
-				echo "Setup:    Error: Missing WFX core driver   ($wfx_core_link)"
-				echo "                 You need to check you WFX driver installation! Make sure you have the $wfx_core_link file!"
-			fi
-			if [ -z "$wfx_sdio_module" ]; then
-				missing_files=$missing_files + 1
-				echo "Setup:    Error: Missing WFX SDIO driver   ($wfx_sdio_link)"
-				echo "                 You need to check you WFX driver installation! Make sure you have the $wfx_sdio_link file!"
-			fi
-			# Continue the SDIO checks only if both CORE and SDIO drivers are present
-			if [ -n "$wfx_core_module" ]; then
-				wfx_core_version=$(modinfo wfx_core  | grep -E "^version")
-				echo "Setup:    WFX CORE module $wfx_core_version ($wfx_core_module)"
-				if [ -n "$wfx_sdio_module" ]; then
-					wfx_sdio_version=$(modinfo wfx_wlan_sdio  | grep -E "^version")
-					echo "Setup:    WFX SDIO module $wfx_sdio_version ($wfx_sdio_module)"
-				fi
-			fi
-		else
-			echo "Startup:  Error: No part detected at boot on SDIO bus!"
-			echo "                 Is there an EVB attached to the Pi, with the bus selection switch set to 'SDIO'?"
-			exit 1
-		fi
+####################################################################################################
+# Execution context checks:
+#  The platform is a Raspberry Pi
+! grep -q 'NAME="Raspbian GNU/Linux"' /etc/os-release && echo "You must run this script from a Raspberry" && exit 1
+#  Executed as sudo
+[ -z "$SUDO_USER" ] && echo "\nThis script must be run with sudo" && exit 1
+#  The kernel release is supported
+KERNEL_SUPPORTED=0
+for k in "${KERNEL_ARRAY[@]}"; do
+	echo "$k "
+    if [ "$KERNEL" == "$k" ]; then
+		KERNEL_SUPPORTED=1
+		echo "KERNEL_SUPPORTED $KERNEL_SUPPORTED "
+		break
 	fi
-fi
-
-# SPI test: first of all, check if SPI overlay is enabled in .boot/config.txt
-SPI_overlay=$(cat /boot/config.txt | grep ^dtoverlay= | grep wfx-spi)
-if [ -z "$SPI_overlay" ]; then
-	WFX_SPI_Overlay_enabled=0
-else
-	WFX_SPI_Overlay_enabled=1
-	WFX_DRIVER=wfx_wlan_spi
-	echo "User:     WFX SPI overlay_enabled          (in /boot/config.txt)"
-	# SDIO detection at boot will only occur if sdio overlay is enabled in boot/config.txt
-	if [ "$WFX_SPI_Overlay_enabled" = 1 ]; then
-		# Check if SPI driver is blacklisted
-		SPI_blacklisted=$(cat /etc/modprobe.d/raspi-blacklist.conf | grep ^blacklist | grep wfx_wlan_spi)
-		if [ -z "$SPI_blacklisted" ]; then
-			WFX_SPI_Driver_blacklisted=0
-			echo "User:     WFX SPI  Driver not blacklisted  (it should load automatically after boot)"
-		else
-			WFX_SPI_Driver_blacklisted=1
-			echo "User:     WFX SPI  Driver blacklisted      (it must be loaded using 'sudo modprobe -v wfx_wlan_spi')"
-		fi
-		# Check WFx SPI driver modules existence
-		if [ -z "$wfx_core_module" ]; then
-			missing_files=$missing_files + 1
-			echo "Setup:    Error: Missing WFX core driver   ($wfx_core_link)"
-			echo "                 You need to check you WFX driver installation! Make sure you have the $wfx_core_link file!"
-		fi
-		if [ -z "$wfx_spi_module" ]; then
-			missing_files=$missing_files + 1
-			echo "Setup:    Error: Missing WFX SPI  driver   ($wfx_spi_link)"
-			echo "                 You need to check you WFX driver installation! Make sure you have the $wfx_spi_link file!"
-		fi
-		# Continue the SPI checks only if both CORE and SPI drivers are present
-		if [ -n "$wfx_core_module" ]; then
-			wfx_core_version=$(modinfo wfx_core  | grep -E "^version")
-			echo "Setup:    WFX CORE module $wfx_core_version ($wfx_core_module)"
-			if [ -n "$wfx_spi_module" ]; then
-				wfx_spi_version=$(modinfo wfx_wlan_spi  | grep -E "^version")
-				echo "Setup:    WFX SPI  module $wfx_spi_version ($wfx_spi_module)"
-			fi
-		fi
-		if [ ! -e "$wfx_spi_dtbo" ]; then
-			missing_files=$missing_files + 1
-			echo "Setup:    Error: Missing WFX SPI  device tree overlay ($wfx_spi_dtbo)"
-			echo "                 You need to check you WFX driver installation! Make sure you have the $wfx_spi_dtbo file!"
-		fi
-	fi
-fi
-
-if [ -z "$wfx_fw_file" ]; then
-	missing_files=$missing_files + 1
-	echo "Setup:    Error: Missing WFX FW file driver ($wfx_fw_file)"
-	echo "                 You need to check you WFX driver installation! Make sure you have the $wfx_fw_file file!"
-fi
-if [ -z "$wfx_pds_file" ]; then
-	missing_files=$missing_files + 1
-	echo "Setup:    Error: Missing WFX FW file driver ($wfx_pds_file)"
-	echo "                 You need to check you WFX driver installation! Make sure you have the $wfx_pds_file file!"
-fi
-
-if [ -n "$wfx_fw_file" ]; then
-	echo "Setup:    WFX Firmware      $wfx_fw_link ($wfx_fw_base)"
-fi
-if [ -n "$wfx_pds_file" ]; then
-	echo "Setup:    WFX PDS           $wfx_pds_link ($wfx_pds_base)"
-fi
-if [ -n "$wfx_power_mode_option" ]; then
-	echo "User:     WFX Power mode    $wfx_power_mode_option"
-fi
-
-if [ $missing_files -gt 0 ]; then
-	echo "Setup:   ERROR: There are $missing_files missing files!"
-	echo "         Check your installation based on the above recommendations, and try again."
-	echo "         It may be worth using 'sudo halt' (to make sure any change is saved), waiting for the activity led to stop blinking then power-cycling the Pi."
+done
+if [ "$KERNEL_SUPPORTED" == 0 ]; then
+	echo "kernel '$KERNEL' is not supported, sorry. Only supporting ${KERNEL_ARRAY[@]}"
 	exit 1
-else
-	# Check if driver has already been loaded
-	wfx_loading=$(dmesg | grep wfx)
-	if [ -n "$wfx_loading" ]; then
-		wfx_startup=$(dmesg | grep wfx | grep "Startup OK")
-		if [ -n "$wfx_startup" ]; then
-			wfx_driver_success=$(ifconfig wlan0)
-			if [ -n "$wfx_driver_success" ]; then
-				echo "Startup:  all OK, WFx part ready to act as wlan0"
-				echo "Startup:  FW $(dmesg | grep Label.)"
-				echo "Startup:  current wlan0 status from 'iwconfig wlan0':"
-				echo "$(iwconfig wlan0)"
-			else
-				echo "Startup:  Error: WFx part not visible as wlan0"
-				echo "               dmesg info:\n$(dmesg | grep wfx)"
-				echo "               Look at the complete dmesg to get more details"
-				echo "               Contact Silicon Labs with a capture of the above information for assistance"
-				exit 1
-			fi
-		else
-			echo "Startup:  Error: WFx part driver loading failed"
-			echo "               dmesg info:\n$(dmesg | grep wfx)"
-			echo "               Look at the complete dmesg to get more details"
-			echo "               Contact Silicon Labs with a capture of the above information for assistance"
-			exit 1
-		fi
+fi
+
+
+####################################################################################################
+# Creating work folder
+if [ ! -e "$SILABS_ROOT" ]; then
+	sudo mkdir "$SILABS_ROOT"
+fi
+
+####################################################################################################
+# Retrieving and copying Scripts and Driver executables
+cd "$SILABS_ROOT"
+
+#   Scripts
+if [ ! -e "$SILABS_ROOT/$SILABS_REPO_SCRIPTS" ]; then
+	echo "Cloning repository $SILABS_GITHUB_SCRIPTS/$SILABS_REPO_SCRIPTS.git in $(pwd)"
+	sudo git clone $SILABS_GITHUB_SCRIPTS/$SILABS_REPO_SCRIPTS.git --depth 5
+fi
+
+cd "$SILABS_ROOT/$SILABS_REPO_SCRIPTS"
+echo "Fetching repository $SILABS_GITHUB_SCRIPTS/$SILABS_REPO_SCRIPTS.git tag $SCRIPTS_TAG in $(pwd)"
+sudo git fetch $SILABS_GITHUB_SCRIPTS/$SILABS_REPO_SCRIPTS.git --depth 5 --tags "$SCRIPTS_TAG"
+
+if [ -e "$SILABS_ROOT/$SILABS_REPO_SCRIPTS/pi" ]; then
+	echo "Copying Silicon Labs scripts in $USER_ROOT"
+	cp --force $SILABS_ROOT/$SILABS_REPO_SCRIPTS/pi/* $USER_ROOT
+fi
+sudo chown pi: $USER_ROOT/*.sh
+chmod a+x $USER_ROOT/*.sh
+
+#   Driver executables
+if [ -e "$SILABS_ROOT/$SILABS_REPO_SCRIPTS/wfx_driver" ]; then
+	if [ ! -e "$USER_ROOT/wfx_driver" ]; then
+		mkdir "$USER_ROOT/wfx_driver"
+	fi
+	echo "Copying Silicon Labs WFx200 Drivers in $USER_ROOT/wfx_driver"
+	cp --force $SILABS_ROOT/$SILABS_REPO_SCRIPTS/wfx_driver/*$DRV_RELEASE*wfx*.ko $USER_ROOT/wfx_driver
+	WFX_CORE_FILE=$(ls $USER_ROOT/wfx_driver/*wfx_core.ko      | grep $DRV_TAG)
+	echo "WFX_CORE_FILE=$WFX_CORE_FILE"
+	WFX_SDIO_FILE=$(ls $USER_ROOT/wfx_driver/*wfx_wlan_sdio.ko | grep $DRV_TAG)
+	echo "WFX_CORE_FILE=$WFX_CORE_FILE"
+	WFX_SPI_FILE=$( ls $USER_ROOT/wfx_driver/*wfx_wlan_spi.ko  | grep $DRV_TAG)
+	echo "WFX_CORE_FILE=$WFX_CORE_FILE"
+	echo "Creating symbolic links to Silicon Labs WFx200 Drivers"
+	ln -sf $WFX_CORE_FILE /lib/modules/$KERNEL/kernel/drivers/net/wireless/siliconlabs/wfx/wfx_core.ko
+	ln -sf $WFX_SDIO_FILE /lib/modules/$KERNEL/kernel/drivers/net/wireless/siliconlabs/wfx/wfx_wlan_sdio.ko
+	ln -sf $WFX_SPI_FILE  /lib/modules/"$KERNEL"/kernel/drivers/net/wireless/siliconlabs/wfx/wfx_wlan_spi.ko
+fi
+
+####################################################################################################
+# Retrieving and copying FW & PDS files
+cd "$SILABS_ROOT"
+
+if [ ! -e "$SILABS_ROOT/$SILABS_REPO_FW" ]; then
+	echo "Cloning repository $SILABS_GITHUB_FW/$SILABS_REPO_FW.git in $(pwd)"
+	sudo git clone $SILABS_GITHUB_FW/$SILABS_REPO_FW.git --depth 5
+fi
+
+cd "$SILABS_ROOT/$SILABS_REPO_FW"
+echo "Fetching repository $SILABS_GITHUB_FW/$SILABS_REPO_FW.git tag $FW_TAG in $(pwd)"
+sudo git fetch $SILABS_GITHUB_FW/$SILABS_REPO_FW.git --depth 5 --tags "$FW_TAG"
+
+#   FW files
+if [ -e "$SILABS_ROOT/$SILABS_REPO_FW/wfx" ]; then
+	if [ ! -e "$USER_ROOT/wfx_firmware" ]; then
+		mkdir "$USER_ROOT/wfx_firmware"
+	fi
+	if [ ! -e "$USER_ROOT/wfx_firmware/wfx" ]; then
+		mkdir "$USER_ROOT/wfx_firmware/wfx"
+	fi
+	FW_FILE=$USER_ROOT/wfx_firmware/wfx/wfm_wf200_A0_FW"$FW_RELEASE".sec
+	echo "Copying Silicon Labs WFx200 Firmware in $USER_ROOT/wfx_firmware/wfx"
+	cp --force $SILABS_ROOT/$SILABS_REPO_FW/wfx/wfm_wf200_A0.sec $FW_FILE
+	echo "Creating symbolic link to Silicon Labs WFx200 Firmware"
+	ln -sf $FW_FILE /lib/firmware/wfm_wf200.sec
+fi
+#   PDS files
+if [ -e "$SILABS_ROOT/$SILABS_REPO_FW/pds" ]; then
+	if [ ! -e "$USER_ROOT/wfx_firmware" ]; then
+		mkdir "$USER_ROOT/wfx_firmware"
+	fi
+	if [ ! -e "$USER_ROOT/wfx_firmware/pds" ]; then
+		mkdir "$USER_ROOT/wfx_firmware/pds"
+	fi
+	PDS_FILE=$USER_ROOT/wfx_firmware/pds/"$PDS"_FW"$FW_RELEASE".json
+	echo "Copying Silicon Labs WFx200 PDS file in $USER_ROOT/wfx_firmware/pds"
+	cp --force $SILABS_ROOT/$SILABS_REPO_FW/pds/"$PDS".json $PDS_FILE
+	echo "Creating symbolic link to Silicon Labs WFx200 PDS"
+	ln -sf $PDS_FILE /lib/firmware/pds_wf200.json
+fi
+
+cd $START_DIR
+
+# Checking kernel image, dtb and config files presence. Adding them is not present
+if [ ! -e "/boot/$KERNEL_IMAGE" ]; then
+	echo "No /boot/$KERNEL_IMAGE file. Copying it"
+	cp --force "$SILABS_ROOT/$SILABS_REPO_SCRIPTS/boot/$KERNEL_IMAGE" "/boot/$KERNEL_IMAGE"
+fi
+if [ ! -e "/boot/overlays/$SPI_DTBO" ]; then
+	echo "No /boot/overlays/$SPI_DTBO file. Copying it"
+	cp --force "$SILABS_ROOT/$SILABS_REPO_SCRIPTS/boot/overlays/$SPI_DTBO" "/boot/overlays/$SPI_DTBO"
+fi
+if [ ! -e "/boot/$DEVICE_TREE_BLOB" ]; then
+	echo "No /boot/$DEVICE_TREE_BLOB file. Copying it"
+	cp --force "$SILABS_ROOT/$SILABS_REPO_SCRIPTS/boot/$DEVICE_TREE_BLOB" "/boot/$DEVICE_TREE_BLOB"
+fi
+# Checking current kernel selection
+KERNEL_SELECTED=$(cat /boot/$CONFIG_FILE | grep ^kernel | cut -d "=" -f 2)
+if [ "$KERNEL_SELECTED" != "$KERNEL_IMAGE" ]; then
+	if [ -z "$KERNEL_SELECTED" ]; then
+		echo "No kernel image selected in /boot/$CONFIG_FILE. Selecting $KERNEL_IMAGE by default"
+		echo "kernel=$KERNEL_IMAGE"   >> "/boot/$CONFIG_FILE"
 	else
-		echo "Startup:  Waiting for user to use 'sudo modprobe -v $WFX_DRIVER' to load the driver"
-		exit 1
+		sed -i~ 's/$KERNEL_SELECTED/$KERNEL_IMAGE/m' "/boot/$CONFIG_FILE"
 	fi
 fi
+
+# Checking current device tree selection
+DEVICE_TREE_SELECTED=$(cat /boot/$CONFIG_FILE | grep ^device_tree | cut -d "=" -f 2)
+if [ "$DEVICE_TREE_SELECTED" != "$DEVICE_TREE_BLOB" ]; then
+	if [ -z "$DEVICE_TREE_SELECTED" ]; then
+		echo "No device tree selected in /boot/$CONFIG_FILE. Selecting $DEVICE_TREE_BLOB"
+		echo "DEVICE_TREE=$DEVICE_TREE_BLOB"   >> "/boot/$CONFIG_FILE"
+	else
+		echo "Incorrect device tree selected in /boot/$CONFIG_FILE. Selecting $DEVICE_TREE_BLOB"
+		sed -i~ 's/$DEVICE_TREE_SELECTED/$DEVICE_TREE_BLOB/m' "/boot/$CONFIG_FILE"
+	fi
+fi
+
+# Checking current overlays and blacklist (Configuring for SDIO auto by default)
+BLACKLISTED=$(cat "$BLACKLIST_FILE" | grep ^blacklist | grep -E "brcmfmac")
+if [ -z "$BLACKLISTED" ]; then
+	echo "Broadcom WiFi not blacklisted. Blacklisting it by default (for Pi3)"
+	echo "blacklist brcmfmac" >> "$BLACKLIST_FILE"
+fi
+BLACKLISTED=$(cat "$BLACKLIST_FILE" | grep ^blacklist | grep -E "sdio|spi")
+if [ -z "$BLACKLISTED" ]; then
+	echo "No SDIO or SPI Driver blacklisted. Blacklisting SPI and commenting SDIO by default"
+	echo "#blacklist wfx_wlan_sdio" >> "$BLACKLIST_FILE"
+	echo "blacklist wfx_wlan_spi"   >> "$BLACKLIST_FILE"
+fi
+OVERLAYS=$(cat "/boot/$CONFIG_FILE" | grep ^dtoverlay | grep -E "sdio|spi")
+if [ -z "$OVERLAYS" ]; then
+	echo "No SDIO or SPI Overlay enabled. Enabling SDIO and commenting SPI by default"
+	echo "dtoverlay=sdio"       >> "/boot/$CONFIG_FILE"
+	echo "#dtoverlay=wfx-spi"   >> "/boot/$CONFIG_FILE"
+fi
+
+# Updating modules dependencies
+echo "Updating modules dependencies"
+depmod -a
+
+# Displaying user information
+echo "Use the following scripts to configure WiFi for your use case"
+ls $USER_ROOT/*.sh | grep -E "_auto|_modprobe"
+echo " Then enter 'sudo halt',"
+echo "   wait for the activity leds to stop blinking,"
+echo "   set the Devkit switch to SDIO or SPI according to your configuration"
+echo "   and power-cycle the Pi to get started with your Wfx200"
+
+echo " Once rebooted, use the /home/pi/wfx_all_checks.sh script to check your setup and how the startup is going"
