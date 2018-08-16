@@ -145,12 +145,6 @@ if [ -e "$SILABS_ROOT/$SILABS_REPO_FW/pds" ]; then
 	ln -sf $PDS_FILE /lib/firmware/pds_wf200.json
 fi
 
-# Updating modules dependencies
-echo "Updating modules dependencies"
-depmod -a
-
-set ""
-
 cd $START_DIR
 
 # Checking kernel image, dtb and config files presence. Adding them is not present
@@ -201,6 +195,11 @@ if [ -z "$OVERLAYS" ]; then
 	echo "dtoverlay=sdio"       >> "/boot/$CONFIG_FILE"
 	echo "#dtoverlay=wfx-spi"   >> "/boot/$CONFIG_FILE"
 fi
+
+# Updating modules dependencies
+echo "Updating modules dependencies"
+sudo depmod -a
+
 # Displaying user information
 echo "Use the following scripts to configure WiFi for your use case"
 ls $USER_ROOT/*.sh | grep -E "_auto|_modprobe"
