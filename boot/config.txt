@@ -55,7 +55,29 @@
 # Enable audio (loads snd_bcm2835)
 dtparam=audio=on
 device_tree=bcm2710-rpi-3-b_4.4.50-v7+.dtb
-dtoverlay=sdio
+
 kernel=kernel7_4.4.50-v7+.img
 dtoverlay=pi3-disable-bt
 enable_uart=1
+
+
+# WFx EVB usage: select ONLY ONE configuration set in [SDIO|SPI] and set the HW switch accordingly, then go through a power-cycle to apply your changes
+#
+# The following 12 lines are documenting the SDIO/SPI settings. Keep these untouched. Apply your selection in the next 3 lines after these
+#
+#   WFx SDIO configuration: 
+#    /boot/config.txt:                      dtoverlay=sdio              (WFx200 WiFi on SDIO bus is active)
+#    /boot/config.txt:                      #dtoverlay=wfx-spi          (WFx200 WiFi on SPI  bus is not connected)
+#    /etc/modules                           wfx_wlan_sdio               (WFx200 WiFi on SDIO bus driver loaded at boot)
+#    /etc/modprobe.d/raspi-blacklist.conf:  blacklist brcmfmac          (Broadcom Wifi on SDIO bus is blacklisted for Pi3)
+#    /etc/modprobe.d/raspi-blacklist.conf:  blacklist wfx_wlan_spi      (WFx200 Wifi on SPI  bus is blacklisted)
+#
+#   WFx SPI  configuration:
+#    /boot/config.txt:                      #dtoverlay=sdio             (WFx200 WiFi on SDIO bus is inactive)
+#    /boot/config.txt:                      dtoverlay=wfx-spi           (WFx200 WiFi on SPI  bus is active)
+#    /etc/modprobe.d/raspi-blacklist.conf:  blacklist brcmfmac          (Broadcom Wifi on SDIO bus is blacklisted for Pi3)
+#    /etc/modprobe.d/raspi-blacklist.conf:  blacklist wfx_wlan_sdio     (WFx200 Wifi on SDIO bus is blacklisted)
+#
+# WFx200 configuration is done in the next 2 lines and in /etc/modprobe.d/raspi-blacklist.conf:
+dtoverlay=wfx-sdio
+#dtoverlay=wfx-spi

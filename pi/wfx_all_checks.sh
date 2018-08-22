@@ -2,6 +2,7 @@
 
 echo "Current configuration"
 . ./wfx_config.sh
+cat /etc/network/interfaces | grep -E "wlan|^.\s[^#].*wpa-conf"
 echo ""
 
 kernel=$(uname -r)
@@ -13,7 +14,8 @@ wfx_core_base=/lib/modules/$kernel/kernel/drivers/net/wireless/siliconlabs/wfx/w
 wfx_sdio_base=/lib/modules/$kernel/kernel/drivers/net/wireless/siliconlabs/wfx/wfx_wlan_sdio.ko
 wfx_spi_base=/lib/modules/$kernel/kernel/drivers/net/wireless/siliconlabs/wfx/wfx_wlan_spi.ko
 wfx_fw_base=/lib/firmware/wfm_wf200.sec
-wfx_pds_base=/lib/firmware/pds_wf200.json
+wfx_old_pds_base=/lib/firmware/pds_wf200.json
+wfx_pds_base=/lib/firmware/wf200.pds
 wfx_core_conf=/etc/modprobe.d/wfx_core.conf
 wfx_spi_dtbo=/boot/overlays/wfx-spi.dtbo
 
@@ -44,6 +46,14 @@ if [ -n "$wfx_fw_link" ]; then
 	wfx_fw_file=$(ls $wfx_fw_base)
 else
 	wfx_fw_file=$wfx_fw_base
+fi
+
+
+wfx_old_pds_link=$(readlink $wfx_old_pds_base)
+if [ -n "$wfx_old_pds_link" ]; then
+	wfx_old_pds_file=$(ls $wfx_old_pds_base)
+else
+	wfx_old_pds_file=$wfx_old_pds_base
 fi
 
 wfx_pds_link=$(readlink $wfx_pds_base)
@@ -89,12 +99,12 @@ else
 			if [ -z "$wfx_core_module" ]; then
 				missing_files=$missing_files + 1
 				echo "Setup:    Error: Missing WFX core driver   ($wfx_core_link)"
-				echo "                 You need to check you WFX driver installation! Make sure you have the $wfx_core_link file!"
+				echo "                 You need to check your WFX driver installation! Make sure you have the $wfx_core_link file!"
 			fi
 			if [ -z "$wfx_sdio_module" ]; then
 				missing_files=$missing_files + 1
 				echo "Setup:    Error: Missing WFX SDIO driver   ($wfx_sdio_link)"
-				echo "                 You need to check you WFX driver installation! Make sure you have the $wfx_sdio_link file!"
+				echo "                 You need to check your WFX driver installation! Make sure you have the $wfx_sdio_link file!"
 			fi
 			# Continue the SDIO checks only if both CORE and SDIO drivers are present
 			if [ -n "$wfx_core_module" ]; then
@@ -136,12 +146,12 @@ else
 		if [ -z "$wfx_core_module" ]; then
 			missing_files=$missing_files + 1
 			echo "Setup:    Error: Missing WFX core driver   ($wfx_core_link)"
-			echo "                 You need to check you WFX driver installation! Make sure you have the $wfx_core_link file!"
+			echo "                 You need to check your WFX driver installation! Make sure you have the $wfx_core_link file!"
 		fi
 		if [ -z "$wfx_spi_module" ]; then
 			missing_files=$missing_files + 1
 			echo "Setup:    Error: Missing WFX SPI  driver   ($wfx_spi_link)"
-			echo "                 You need to check you WFX driver installation! Make sure you have the $wfx_spi_link file!"
+			echo "                 You need to check your WFX driver installation! Make sure you have the $wfx_spi_link file!"
 		fi
 		# Continue the SPI checks only if both CORE and SPI drivers are present
 		if [ -n "$wfx_core_module" ]; then
@@ -155,7 +165,7 @@ else
 		if [ ! -e "$wfx_spi_dtbo" ]; then
 			missing_files=$missing_files + 1
 			echo "Setup:    Error: Missing WFX SPI  device tree overlay ($wfx_spi_dtbo)"
-			echo "                 You need to check you WFX driver installation! Make sure you have the $wfx_spi_dtbo file!"
+			echo "                 You need to check your WFX driver installation! Make sure you have the $wfx_spi_dtbo file!"
 		fi
 	fi
 fi
@@ -163,19 +173,24 @@ fi
 if [ -z "$wfx_fw_file" ]; then
 	missing_files=$missing_files + 1
 	echo "Setup:    Error: Missing WFX FW file driver ($wfx_fw_file)"
-	echo "                 You need to check you WFX driver installation! Make sure you have the $wfx_fw_file file!"
+	echo "                 You need to check your WFX driver installation! Make sure you have the $wfx_fw_file file!"
 fi
-if [ -z "$wfx_pds_file" ]; then
-	missing_files=$missing_files + 1
-	echo "Setup:    Error: Missing WFX FW file driver ($wfx_pds_file)"
-	echo "                 You need to check you WFX driver installation! Make sure you have the $wfx_pds_file file!"
+if [ -z "$wfx_old_pds_file" ]; then
+	if [ -z "$wfx_pds_file" ]; then
+		missing_files=$missing_files + 1
+		echo "Setup:    Error: Missing WFX FW file driver ($wfx_old_pds_file or $wfx_pds_file)"
+		echo "                 You need to check your WFX driver installation! Make sure you have the $wfx_old_pds_file or $wfx_pds_file file!"
+	fi
 fi
 
 if [ -n "$wfx_fw_file" ]; then
 	echo "Setup:    WFX Firmware      $wfx_fw_link ($wfx_fw_base)"
 fi
+if [ -n "$wfx_old_pds_file" ]; then
+	echo "Setup:    WFX PDS           $wfx_old_pds_link for DRV<=1.2.8 ($wfx_old_pds_base)"
+fi
 if [ -n "$wfx_pds_file" ]; then
-	echo "Setup:    WFX PDS           $wfx_pds_link ($wfx_pds_base)"
+	echo "Setup:    WFX PDS           $wfx_pds_link  for DRV> 1.2.8 ($wfx_pds_base)"
 fi
 if [ -n "$wfx_power_mode_option" ]; then
 	echo "User:     WFX Power mode    $wfx_power_mode_option"

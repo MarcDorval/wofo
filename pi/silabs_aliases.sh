@@ -1,5 +1,12 @@
+# One easy way to get access to the following aliases upon startup:
+#   Add the following line to /home/pi/.profile:
+#   . ./silabs_aliases.sh
+#   This line will source the aliases.
+
 alias black='             sudo nano /etc/modprobe.d/raspi-blacklist.conf'
 alias blacklist='         cat /etc/modprobe.d/raspi-blacklist.conf | grep -v ^# | grep -v ^$'
+alias mmc-bus='           tree /sys/bus/mmc'
+alias check='             /home/pi/wfx_all_checks.sh'
 alias cleanup='           echo "" > .bash_history ; sudo rm /var/log/syslog ; history -c ; '
 alias cmdline='           cat /boot/cmdline.txt | grep -v ^# | grep -v ^$ '
 alias conf='              sudo nano /boot/config.txt '
@@ -12,14 +19,16 @@ alias kernel='            uname -r '
 alias ls='ls --color=auto'
 alias machine='           uname -m '
 alias mmc1='              dmesg | grep mmc1'
+alias mmc-drivers='       tree /sys/bus/platform/drivers/mmc-bcm2835'
 alias model='             cat /sys/firmware/devicetree/base/model '
 alias modules='           cat /etc/modules     | grep -v ^# | grep -v ^$ '
 alias options='           cat /etc/modprobe.d/wfx_core.conf | grep -v ^# | grep -v ^$ ; cat /etc/modprobe.d/wfx_wlan_sdio.conf | grep -v ^# | grep -v ^$ ;  cat /etc/modprobe.d/wfx_wlan_spi.conf | grep -v ^# | grep -v ^$ ;'
 alias reb='               sudo reboot '
-alias scan=' wpa_cli scan ; sleep 3; wpa_cli scan_results '
+alias scan='              wpa_cli scan ; sleep 3; wpa_cli scan_results '
 alias sdio-load='         sudo modprobe -v wfx_wlan_sdio'
-alias sdio-reload='       sudo modprobe -v wfx_wlan_sdio -r ; echo " In SDIO mode, a power cycle is required. Halting..." ; sudo halt '
+alias sdio-reload='       sudo modprobe -v wfx_wlan_sdio -r ; echo 3f300000.mmc | sudo tee /sys/bus/platform/drivers/mmc-bcm2835/unbind ; echo 3f300000.mmc | sudo tee /sys/bus/platform/drivers/mmc-bcm2835/bind ; sudo modprobe -v wfx_wlan_sdio'
 alias sdio-remove='       sudo modprobe -v wfx_wlan_sdio -r'
+alias spi-bus='           tree /sys/bus/spi'
 alias spi-load='          sudo modprobe -v wfx_wlan_spi'
 alias spi-max-frequency=' fdtdump /boot/overlays/wfx-spi.dtbo | grep max '
 alias spi-overclock='     cat /boot/config.txt | grep spi_overclock '

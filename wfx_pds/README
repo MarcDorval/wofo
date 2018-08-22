@@ -1,0 +1,38 @@
+Why this directory?
+-------------------
+
+Between wfx_linux_driver 1.2 and 1.3, PDS handling changes.
+
+Up to 1.2, driver accepted a PDS under plain JSON format (a .json file).
+
+From 1.3, it only accepts a compressed PDS (a .pds file). Tool pds_compress
+allows to generate .pds files. However, input format accepted by pds_compress is
+not exactly the same than plain JSON format accepted by driver 1.2.  Node and
+attribute definitions (also called dictionary) are in a separated file named
+definitions.x.y.z.in. In addition, pds_compress is less restrictive than json format
+(double quotes are not necessary, colon after last attribute of a node is
+accepted, etc...). So, this new format for pds_compress has extension .pds.in
+
+About board configurations
+--------------------------
+
+Each .pds file corresponds to a board configuration. However, it is interesting
+to note that:
+
+   - template_public.pds.in is close to template_intern.pds.in
+   - evb_rev1.1_intern.pds.in is close to template_intern.pds.in
+   - evb_rev1.1_public.pds.in is close to evb_rev1.1_intern.pds.in
+   - BRD802xA.pds.in is close to evb_rev1.1_public.pds.in
+   - BRD802xA_antenna_on_connector.pds.in is close to BRD802xA.pds.in
+
+In a graphical view:
+
+   template_intern.pds.in
+     |--> template_public.pds.in
+     '--> evb_rev1.1_intern.pds.in
+           '--> evb_rev1.1_public.pds.in
+                 '--> BRD802xA.pds.in
+                       '--> BRD802xA_antenna_on_connector.pds.in
+
+Try to run 'diff -u' on these configurations to appreciate these facts.
+

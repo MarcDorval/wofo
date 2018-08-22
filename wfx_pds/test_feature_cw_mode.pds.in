@@ -1,0 +1,23 @@
+#include "definitions-1.2.11.in"
+
+{
+    TEST_FEATURE_CFG_ELT: {
+        // Wi-Fi channel to use. Accepted range is from 1 to 14.
+        TEST_CHANNEL: 7,
+        // TEST_MODE selects the activated test feature: enum = 'rx', 'tx_packet', 'tx_cw'
+        TEST_MODE: tx_cw,
+        // TEST_IND period in ms at which an indication message is sent.
+        //       In the case of rx test, it returns the measurement results (PER)
+        TEST_IND: 5000,
+        // CFG_TX_CW: additional configuration for tx_cw mode
+        CFG_TX_CW: {
+            // CW_MODE CW mode: enum 'single' or 'dual'
+            CW_MODE: single,
+            // FREQ1 frequency offset -31 to 31 (in 312.5kHz)
+            FREQ1: 1,
+            // FREQ2 frequency offset -31 to 31 (in 312.5kHz)
+            FREQ2: 2
+        },
+    },
+
+}
