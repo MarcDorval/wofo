@@ -7,6 +7,7 @@ START_DIR=$(pwd)
 SILABS_ROOT=/usr/src/siliconlabs
 USER_ROOT=/home/pi
 
+UPDATE_TAG="1.2.8_wfx-sdio"
 SCRIPTS_TAG=1.2.8
 DRV_RELEASE=1.2.8
 FW_RELEASE=1.2.8
@@ -32,7 +33,7 @@ SILABS_REPO_FW=wfx_firmware
 SILABS_GITHUB_DRV=https://github.com/SiliconLabs
 SILABS_REPO_DRV=wfx_linux_driver_code
 
-echo "Silicon Labs update script for WFx200 WiFi parts"
+echo "Silicon Labs update $UPDATE_TAG script for WFx200 WiFi parts"
 echo "  Driver $DRV_TAG"
 echo "  FW     $FW_TAG"
 echo "  PDS    $PDS"
@@ -116,8 +117,8 @@ if [ ! -e "$SILABS_ROOT/$SILABS_REPO_FW" ]; then
 fi
 
 cd "$SILABS_ROOT/$SILABS_REPO_FW"
-echo "Fetching repository $SILABS_GITHUB_FW/$SILABS_REPO_FW.git tag $FW_TAG in $(pwd)"
-sudo git fetch $SILABS_GITHUB_FW/$SILABS_REPO_FW.git --depth 5 --tags "$FW_TAG"
+echo "Fetching repository $SILABS_GITHUB_FW/$SILABS_REPO_FW.git tag $UPDATE_TAG in $(pwd)"
+sudo git fetch $SILABS_GITHUB_FW/$SILABS_REPO_FW.git --depth 5 --tags "$UPDATE_TAG"
 
 #   FW files
 if [ -e "$SILABS_ROOT/$SILABS_REPO_FW/wfx" ]; then
