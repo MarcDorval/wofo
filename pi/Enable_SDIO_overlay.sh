@@ -3,4 +3,4 @@
 # Now using wfx-sdio overlay instead of sdio overlay
 sudo sed -i~ 's/dtoverlay=sdio/dtoverlay=wfx-sdio/m' /boot/config.txt
 # Enabling SDIO overlay
-sudo sed -i~ 's/^\s*#\s*dtoverlay=wfx-sdio\s*$\s*$/dtoverlay=wfx-sdio/m' /boot/config.txt
+sudo sed -i~ 's/^\s*#\s*dtoverlay=wfx-sdio\s*$/dtoverlay=wfx-sdio/m' /boot/config.txt
