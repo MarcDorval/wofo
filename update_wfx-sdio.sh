@@ -86,12 +86,13 @@ sudo git checkout "$SCRIPTS_TAG"
 if [ -e "$SILABS_ROOT/$SILABS_REPO_SCRIPTS/pi" ]; then
 	echo "Copying Silicon Labs scripts in $USER_ROOT"
 	cp --force $SILABS_ROOT/$SILABS_REPO_SCRIPTS/pi/* $USER_ROOT
+	cp --force $SILABS_ROOT/$SILABS_REPO_SCRIPTS/pi/.profile $USER_ROOT
 fi
 sudo chown pi: $USER_ROOT/*.sh
 chmod a+x $USER_ROOT/*.sh
 
 cd $START_DIR
-# Checking kernel image, dtb and config files presence. Adding them is not present
+# Checking kernel image, dtb and config files presence. Adding them if not present
 if [ ! -e "/boot/overlays/$SDIO_DTBO" ]; then
 	echo "No /boot/overlays/$SDIO_DTBO file. Copying it"
 	cp --force "$SILABS_ROOT/$SILABS_REPO_SCRIPTS/boot/overlays/$SDIO_DTBO" "/boot/overlays/$SDIO_DTBO"
