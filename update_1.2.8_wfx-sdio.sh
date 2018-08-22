@@ -72,10 +72,12 @@ fi
 cd "$SILABS_ROOT"
 
 #   Scripts
-if [ ! -e "$SILABS_ROOT/$SILABS_REPO_SCRIPTS" ]; then
-	echo "Cloning repository $SILABS_GITHUB_SCRIPTS/$SILABS_REPO_SCRIPTS.git in $(pwd)"
-	sudo git clone $SILABS_GITHUB_SCRIPTS/$SILABS_REPO_SCRIPTS.git --depth 5
+if [ -e "$SILABS_ROOT/$SILABS_REPO_SCRIPTS" ]; then
+	sudo rm -rf $SILABS_ROOT/$SILABS_REPO_SCRIPTS
 fi
+
+echo "Cloning repository $SILABS_GITHUB_SCRIPTS/$SILABS_REPO_SCRIPTS.git in $(pwd)"
+sudo git clone $SILABS_GITHUB_SCRIPTS/$SILABS_REPO_SCRIPTS.git --depth 5
 
 cd "$SILABS_ROOT/$SILABS_REPO_SCRIPTS"
 echo "Fetching repository $SILABS_GITHUB_SCRIPTS/$SILABS_REPO_SCRIPTS.git tag $SCRIPTS_TAG in $(pwd)"

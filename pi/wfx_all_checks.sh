@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Current configuration"
-. ./wfx_config.sh
+. /home/pi/wfx_config.sh
 cat /etc/network/interfaces | grep -E "wlan|^.\s[^#].*wpa-conf"
 echo ""
 
