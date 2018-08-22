@@ -8,7 +8,7 @@ SILABS_ROOT=/usr/src/siliconlabs
 USER_ROOT=/home/pi
 
 UPDATE_TAG="wfx-sdio"
-SCRIPTS_TAG=1.2.8
+SCRIPTS_TAG="wfx-sdio"
 DRV_RELEASE=1.2.8
 FW_RELEASE=1.2.8
 DRV_TAG=DRV-"$DRV_RELEASE"
